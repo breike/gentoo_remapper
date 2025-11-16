@@ -1,0 +1,115 @@
+#!/usr/bin/python3
+
+# CC0, originally written by t184256.
+
+# This is an example Python program for Linux that remaps a keyboard.
+# The events (key presses releases and repeats), are captured with evdev,
+# and then injected back with uinput.
+
+# This approach should work in X, Wayland, anywhere!
+
+# Also it is not limited to keyboards, may be adapted to any input devices.
+
+# The program should be easily portable to other languages or extendable to
+# run really any code in 'macros', e.g., fetching and typing current weather.
+
+# The ones eager to do it in C can take a look at (overengineered) caps2esc:
+# https://github.com/oblitum/caps2esc
+
+
+# Import necessary libraries.
+import atexit
+# You need to install evdev with a package manager or pip3.
+import evdev  # (sudo pip3 install evdev)
+
+# making layered layout...
+current_layer = 1
+
+# key for switching to layers on pressing
+#layering_key = evdev.ecodes.KEY_SPACE
+layering_key = 522
+
+# also add ctrl mode for sequential hotkeys
+ctrl_pressed = False
+
+# also left alt mode...
+alt_pressed = False
+
+# Define an example dictionary describing the remaps.
+REMAP_TABLE = {
+    # Let's swap A and B...
+    #
+    #evdev.ecodes.KEY_TAB: {
+    #    1: evdev.ecodes.KEY_ESC,
+    #    2: evdev.ecodes.KEY_LEFTALT
+    #},
+}
+# The names can be found with evtest or in evdev docs.
+
+
+# The keyboard name we will intercept the events for. Obtainable with evtest.
+MATCH = 'Ergohaven Planeta v2'
+# Find all input devices.
+devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
+# Limit the list to those containing MATCH and pick the first one.
+kbd = [d for d in devices if MATCH == d.name][0]
+atexit.register(kbd.ungrab)  # Don't forget to ungrab the keyboard on exit!
+kbd.grab()  # Grab, i.e. prevent the keyboard from emitting original events.
+
+soloing_caps = False  # A flag needed for CapsLock example later.
+
+# Create a new keyboard mimicking the original one.
+with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
+    for ev in kbd.read_loop():  # Read events from original keyboard.
+        if ev.type == evdev.ecodes.EV_KEY:  # Process key events.
+            if ev.code == evdev.ecodes.KEY_PAUSE and ev.value == 1:
+                # Exit on pressing PAUSE.
+                # Useful if that is your only keyboard. =)
+                # Also if you bind that script to PAUSE, it'll be a toggle.
+                break
+            
+            # selecting 2 layer if layering key pressed
+            elif ev.code == layering_key and ev.value == 1:
+                current_layer = 2
+            # or selecting 1 on releasing
+            elif ev.code == layering_key and ev.value == 0:
+                current_layer = 1
+            elif ev.code in REMAP_TABLE:
+                if ctrl_pressed:
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
+                    if ev.value == 0:
+                        ctrl_pressed = False
+                if alt_pressed:
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
+                    if ev.value == 0:
+                        alt_pressed = False
+                # Lookup the key we want to press/release instead...
+                remapped_code = REMAP_TABLE[current_layer][ev.code]
+                # And do it.
+                if remapped_code == evdev.ecodes.KEY_LEFTCTRL:
+                    ctrl_pressed = True
+                elif remapped_code == evdev.ecodes.KEY_LEFTALT:
+                    alt_pressed = True
+                else:
+                    ui.write(evdev.ecodes.EV_KEY, remapped_code, ev.value)
+            elif ev.code == evdev.ecodes.KEY_LEFTCTRL:
+                ctrl_pressed = True
+            elif ev.code == evdev.ecodes.KEY_LEFTALT:
+                alt_pressed = True
+            else:
+                if ctrl_pressed:
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
+                    if ev.value == 0:
+                        ctrl_pressed = False
+                if alt_pressed:
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
+                    if ev.value == 0:
+                        alt_pressed = False
+                # Passthrough other key events unmodified.
+                ui.write(evdev.ecodes.EV_KEY, ev.code, ev.value)
+            # If we just pressed (or held) CapsLock, remember it.
+            # Other keys will reset this flag.
+            soloing_caps = (ev.code == evdev.ecodes.KEY_CAPSLOCK and ev.value)
+        else:
+            # Passthrough other events unmodified (e.g. SYNs).
+            ui.write(ev.type, ev.code, ev.value)
