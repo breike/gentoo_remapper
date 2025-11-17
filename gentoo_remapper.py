@@ -75,11 +75,11 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
             elif ev.code == layering_key and ev.value == 0:
                 current_layer = 1
             elif ev.code in REMAP_TABLE:
-                if ctrl_pressed:
+                if ctrl_pressed and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
                     if ev.value == 0:
                         ctrl_pressed = False
-                if alt_pressed:
+                if alt_pressed and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
                     if ev.value == 0:
                         alt_pressed = False
@@ -99,11 +99,11 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
                 alt_pressed = True
                 ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 1)
             else:
-                if ctrl_pressed:
+                if ctrl_pressed and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
                     if ev.value == 0:
                         ctrl_pressed = False
-                if alt_pressed:
+                if alt_pressed and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
                     if ev.value == 0:
                         alt_pressed = False
