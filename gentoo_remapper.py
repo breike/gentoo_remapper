@@ -94,8 +94,10 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
                     ui.write(evdev.ecodes.EV_KEY, remapped_code, ev.value)
             elif ev.code == evdev.ecodes.KEY_LEFTCTRL:
                 ctrl_pressed = True
+                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, 1)
             elif ev.code == evdev.ecodes.KEY_LEFTALT:
                 alt_pressed = True
+                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 1)
             else:
                 if ctrl_pressed:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
