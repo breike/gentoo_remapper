@@ -48,7 +48,7 @@ REMAP_TABLE = {
 
 
 # The keyboard name we will intercept the events for. Obtainable with evtest.
-MATCH = 'Ergohaven Planeta v2'
+MATCH = 'CyLei Dactyl_74_L'
 # Find all input devices.
 devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
 # Limit the list to those containing MATCH and pick the first one.
