@@ -21,6 +21,37 @@
 import atexit
 # You need to install evdev with a package manager or pip3.
 import evdev  # (sudo pip3 install evdev)
+import sys
+
+def write_config(config_path):
+    global alt_pressed
+    global current_layer
+    global layering_key
+    global ctrl_pressed
+
+    with open(config_path, "w") as f:
+        json.dump({
+            "alt_pressed": alt_pressed,
+            "current_layer": current_layer,
+            "layering_key": layering_key,
+            "ctrl_pressed": ctrl_pressed
+        }, f)
+
+def read_config(config_path):
+    global alt_pressed
+    global current_layer
+    global layering_key
+    global ctrl_pressed
+
+    with open(config_path, "rb") as f:
+        config = json.load(f)
+
+        alt_pressed = config['alt_pressed']
+        current_layer = config['current_layer']
+        layering_key = config['layering_key']
+        ctrl_pressed = config['ctrl_pressed']
+
+json_config_path = "/tmp/gentoo_remapper.json"
 
 # making layered layout...
 current_layer = 1
@@ -48,7 +79,8 @@ REMAP_TABLE = {
 
 
 # The keyboard name we will intercept the events for. Obtainable with evtest.
-MATCH = 'CyLei Dactyl_74_L'
+#MATCH = ['CyLei Dactyl_74_L', 'CyLei Dactyl_74_R']
+MATCH = sys.argv[1]
 # Find all input devices.
 devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
 # Limit the list to those containing MATCH and pick the first one.
@@ -61,6 +93,8 @@ soloing_caps = False  # A flag needed for CapsLock example later.
 # Create a new keyboard mimicking the original one.
 with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
     for ev in kbd.read_loop():  # Read events from original keyboard.
+        read_config(json_config_path)
+
         if ev.type == evdev.ecodes.EV_KEY:  # Process key events.
             if ev.code == evdev.ecodes.KEY_PAUSE and ev.value == 1:
                 # Exit on pressing PAUSE.
@@ -112,6 +146,7 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
             # If we just pressed (or held) CapsLock, remember it.
             # Other keys will reset this flag.
             soloing_caps = (ev.code == evdev.ecodes.KEY_CAPSLOCK and ev.value)
+            write_config(json_config_path)
         else:
             # Passthrough other events unmodified (e.g. SYNs).
             ui.write(ev.type, ev.code, ev.value)

@@ -5,3 +5,12 @@
 command=/usr/bin/gentoo_remapper.py
 command_background="true"
 pidfile="/run/gentoo_remapper.pid"
+
+start() {
+	ebegin "Initializing 'CyLei Dactyl_74_L'"
+	${command} 'CyLei Dactyl_74_L' >/dev/null 2>&1
+	eend $?
+
+	ebegin "Initializing 'CyLei Dactyl_74_R'"
+	${command} 'CyLei Dactyl_74_R' >/dev/null 2>&1
+}
