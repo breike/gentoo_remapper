@@ -91,6 +91,7 @@ kbd.grab()  # Grab, i.e. prevent the keyboard from emitting original events.
 soloing_caps = False  # A flag needed for CapsLock example later.
 
 # Create a new keyboard mimicking the original one.
+write_config(json_config_path)
 with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
     for ev in kbd.read_loop():  # Read events from original keyboard.
         read_config(json_config_path)
