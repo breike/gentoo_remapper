@@ -8,9 +8,14 @@ pidfile="/run/gentoo_remapper.pid"
 
 start() {
 	ebegin "Initializing 'CyLei Dactyl_74_L'"
-	${command} 'CyLei Dactyl_74_L' >/dev/null 2>&1
+	${command} 'CyLei Dactyl_74_L' &
 	eend $?
 
 	ebegin "Initializing 'CyLei Dactyl_74_R'"
-	${command} 'CyLei Dactyl_74_R' >/dev/null 2>&1
+	${command} 'CyLei Dactyl_74_R' &
+	eend $?
+}
+
+stop() {
+	pkill gentoo_remapper
 }
