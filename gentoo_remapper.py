@@ -19,6 +19,7 @@
 
 # Import necessary libraries.
 import atexit
+import json
 # You need to install evdev with a package manager or pip3.
 import evdev  # (sudo pip3 install evdev)
 import sys
