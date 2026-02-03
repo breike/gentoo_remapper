@@ -90,29 +90,26 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
                     ui.write(evdev.ecodes.EV_KEY, remapped_code, ev.value)
             elif ev.code == evdev.ecodes.KEY_LEFTCTRL:
                 config['ctrl_pressed'] = True
-                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, 2)
+                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, 1)
                 write_config(config)
             elif ev.code == evdev.ecodes.KEY_LEFTALT:
                 config['alt_pressed'] = True
-                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 2)
+                ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 1)
                 write_config(config)
             else:
                 if config['ctrl_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
-                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, 2)
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
                 if config['alt_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
-                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 2)
+                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
                 # Passthrough other key events unmodified.
-
                 ui.write(evdev.ecodes.EV_KEY, ev.code, ev.value)
 
-                if config['ctrl_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
-                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, 0)
-                    config['ctrl_pressed'] = False
-                    write_config(config)
-                if config['alt_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
-                    ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, 0)
-                    if ev.value == 0:
-                        config['alt_pressed'] = False
+                if ev.value == 0:
+                    if (config['alt_pressed'] or config['ctrl_pressed']) and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
+                        if config['alt_pressed']:
+                            config['alt_pressed'] = False
+                        if config['ctrl_pressed']:
+                            config['ctrl_pressed'] = False
                         write_config(config)
             # If we just pressed (or held) CapsLock, remember it.
             # Other keys will reset this flag.
