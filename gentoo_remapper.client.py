@@ -97,18 +97,21 @@ with evdev.UInput.from_device(kbd, name='kbdremap') as ui:
             else:
                 if config['ctrl_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTCTRL, ev.value)
+                    if ev.value == 0:
+                        config['ctrl_pressed'] = False
+                        write_config(config)
                 if config['alt_pressed'] and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                     ui.write(evdev.ecodes.EV_KEY, evdev.ecodes.KEY_LEFTALT, ev.value)
+                    if ev.value == 0:
+                        config['alt_pressed'] = False
+                        write_config(config)
+
                 # Passthrough other key events unmodified.
                 ui.write(evdev.ecodes.EV_KEY, ev.code, ev.value)
 
                 if ev.value == 0:
                     if (config['alt_pressed'] or config['ctrl_pressed']) and ev.code != evdev.ecodes.KEY_LEFTSHIFT and ev.code != evdev.ecodes.KEY_RIGHTSHIFT:
                         if config['alt_pressed']:
-                            config['alt_pressed'] = False
-                        if config['ctrl_pressed']:
-                            config['ctrl_pressed'] = False
-                        write_config(config)
             # If we just pressed (or held) CapsLock, remember it.
             # Other keys will reset this flag.
             config['soloing_caps'] = (ev.code == evdev.ecodes.KEY_CAPSLOCK and ev.value)
