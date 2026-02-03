@@ -1,0 +1,8 @@
+#!/sbin/openrc-run
+# Copyright 1999-2025 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v2
+
+description="Gentoo remapper daemon remapper"
+command=/usr/bin/gentoo_remapper.daemon.py
+command_background="true"
+pidfile="/run/gentoo_remapper.daemon.pid"

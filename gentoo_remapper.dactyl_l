@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 description="CyLei Dactyl_74_L remapper"
-command=/usr/bin/gentoo_remapper.py
+command=/usr/bin/gentoo_remapper.client.py
 command_args="'CyLei Dactyl_74_L'"
 command_background="true"
 pidfile="/run/gentoo_remapper.dactyl_l.pid"
